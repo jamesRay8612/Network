@@ -1,0 +1,259 @@
+網路安全個人心得筆記:
+#
+ch1 intro
+ch2 classical encryption techniques
+ch3 AES and DES
+ch4 RSA
+ch5 hash function/ MAC/ Digital signature
+ch6 TLs(transport layer security)
+#
+
+
+### ch1: intro and security concept
+Cryptographic algo:
+asymmetric/stmmetric cipher
+hash function (one way)
+
+Mutual Trust is important
+
+:::success
+confidentiality 機密性 合法取閱資訊
+integrity 完整性 資訊正確完整
+availability 可用性 資訊需要時可用
+:::
+
+
+![3imp](https://hackmd.io/_uploads/Byikvm_Eke.png)
+
+threat - a potential for violation of security
+attack - an assult on system security
+
+
+passive attack --read message contents/traffic analysis
+Activve attack --masquerade偽裝角色/replay重送/modification of message改內容/denial of service阻斷攻擊
+
+Security 最基礎兩個protocol
+X.800 from ITU-T組織 and RFC 2828 from ISOC
+x800 : a service provided by protocol layer of communication system ensuring security system or data transfer
+provide (Authentication認證主機/AccessControl控資源使用/機密性/完整性/可用/non-repidiation 防一主機denial 攻擊)
+
+RFC 2828 : communication service provided by system to give protection to resources
+
+安全機制 : 
+主軸在 detect, prevent or recorver
+常用cryptographic 技術來做基礎
+
+![service_provide](https://hackmd.io/_uploads/Sk1jt7_V1l.png)
+
+網路安全的模型:
+![model](https://hackmd.io/_uploads/rkNpYXuVJl.png)
+#### 主軸在: 設計算法做安全傳輸 產生私鑰給算法用 想辦法傳輸私密訊息
+
+### ch2 classical encryption tech:
+對稱加密(single-key)
+收送雙方共享key
+加密用private key
+
+
+![symModel](https://hackmd.io/_uploads/SJXj9md4Jx.png)
+
+Y = E(K,X) or E_{K}(X)
+X = D(K,Y)
+
+implies a secure channel to distribute key
+密碼學裡
+#### 主軸關注 運算類型(subsititution/ transposition/ product) 鑰匙量(single(private) two-key(public)) 以及明文plaintext 傳輸(block/stream)
+
+:::success
+攻擊分為:(要知道攻擊方能自己送來隨意得到密文 所以以下幾個實際都是以明文資訊 來命文)
+ciphertext only(只知道密文)/ known plaintext(知道明與密文)/ chosen plaintext(select 明得密)/ chosen ciphertext(select 密得明)/ chosen text(select 明/密 to enc/dec)
+:::
+
+
+Brute Force search key
+Caesar Cipher 移位共通量 eg 3 (a->d, b->e), c = E(k,p) = (p+k) mod 26
+但是英文有其常用性與常用字元 -> 字母頻率攻擊法
+:::warning
+Playfair cipher 建一個5x5 matrix 紀錄英文(其中一格兩字) eg use key word "apple" 則前五個apple 其餘照字母原順序  
+加密與解密: 取兩連續明文 規則如下:
+
+(1)對角 -> 換成另兩對角
+(2)同一列 -> 向下取兩密文
+(3)同一行 -> 向右取兩密文
+(4)相同 -> 中間插入X (null char 表示明文中部出現的字母)
+(5)奇數 -> 最後插X
+:::
+
+
+Vigenere Cipher : key重複直到與明文齊平 E(x) = (x+k_i) mod 26 能檔字母頻率攻擊
+
+Vernam Cipher : 最終防守是明文便密文來傳並使用一次性鑰匙 one time pad 運算為XOR
+
+### ch3 AES and DES:
+DES(data encryption standard, 1970美國IBM發明的block cipher(64bits)方法):
+
+data 不夠補0, key 64bits 但其中8bits error correction , 有效56bits
+:::warning
+![DES_flow](https://hackmd.io/_uploads/SJFObV_E1g.png)
+:::
+
+
+triple DES : EEE3 三把不同私鑰(168bits) 以加密-加密-加密 處理產生密文
+![tripleDes](https://hackmd.io/_uploads/ryUlKNFNJx.png)
+
+
+
+#### AES (advanced encrpytion standard):
+
+:::danger
+128/192 bit keys, 128 bit data, iterative cipher(data as block of 4 column of 4 bytes, operate on entire block)
+
+Rijndael(AES enc) algorithm:
+![rij](https://hackmd.io/_uploads/ry8eZNOEkg.png)
+簡單說以16進 一個4x4 block來處理 add roun key(將key 加進來shift )
+add round key XOR with 128bits key
+![addr](https://hackmd.io/_uploads/SyWB24F4yg.png)
+
+substitution 用16x16 table替換每個byte(以左右四bit決定換的位置) 再S-box
+shift rows , circular byte shift, 1st unchange 2st row 1 byte 左移 ...
+mix column 每列獨立運作 乘矩陣  DEC用inverse matrix
+![mix](https://hackmd.io/_uploads/ryzW3NKVJg.png)
+:::
+
+
+AES 解密:
+![aesde](https://hackmd.io/_uploads/ryrc3NY41l.png)
+
+
+### ch4 RSA encoding algorithm:
+公鑰機制:
+use two key -- public and private
+asymmetric, since parties not equal
+
+#### Diffle-Hellman金鑰協議
+離散對數問題很難: p is large prime, q is p's primitive root(可生1~p-1所有數), y = g^x mod p , hard to know x even knowing y,g,p
+![diffle-hellamn](https://hackmd.io/_uploads/ry-cREtEkg.png)
+
+public key: known by anybody, used to encrpyt message and verify signature.  Dec 需要私鑰
+
+public key: authentication and secrecy:
+![pub-aut and sec](https://hackmd.io/_uploads/ry8B1BtVyx.png)
+應用三放面:加解密/數位簽章(認證)/key exchange( of session key)
+
+![comp](https://hackmd.io/_uploads/ByoqeBKEkx.png)
+
+:::warning
+RSA 最知名的publick key scheme
+每人產其public/private key pair by: 選大的prime p,q 算n=p*q, note euler number phi(n) = (p-1)(q-1) (與n互質的正整數個數)
+選擇加密key: e \in {1,phi(n)}, gcd(e,phi{n}) = 1
+算對應解密key: e*d = 1 mod phi{n} and 0<=d<=n
+public key PU={e,n} ; PR = {d,n}
+加密法為 : C = M^e mod n ;解密法 : M = C^d mod n
+![RSA-ex](https://hackmd.io/_uploads/SJAzGHYNke.png)
+RSA同時達到秘密通訊與簽章
+:::
+
+
+
+### ch5 hash function/ MAC/ Digital signature:
+1. Hash function:
+assume that hash function is public and not keyed (but MAC is keyed)
+#### "hash used to detect changes to message, most often to create digital signature"
+基礎要求:
+1對任意長度文件M產生固定長度值output h
+2計算h(M)要容易執行 h = H(M)
+3對任何h,難找到M滿足H(M) = h (one way)
+4對文件M1難找到另一文件M2滿足 H(M1) = H(M2)
+5很難找到一組(M1,M2)同時滿足H(M1) = H(M2)
+滿足1~4稱為weak hash func, 滿足5個稱為strong hash func
+
+symmetric key(public key)裡 加密也就認證，因key是雙方共有
+
+public key裡 要做到認證 可以送方用自己private key加密(認證自己 相較之前多的額外步驟再以收方public key加密(確保只有收方可解 原始步驟)
+![public-aut](https://hackmd.io/_uploads/H1RnnSFV1g.png)
+
+
+
+#### 2. MAC(message authentication code):
+:::warning
+generated by algorithm that creates a small fixed sized block (像是ENC但不須reversible) MAC = C(K,M)
+加在message後做為簽名,收方算同樣算法 check it match the MAC 保證訊息完整與認證送方
+注意MAC不是數位簽章, is many to one function
+MAC須滿足: ![macReq](https://hackmd.io/_uploads/ryQjaHY41l.png)
+:::
+
+
+![hmacF](https://hackmd.io/_uploads/B1HAaSKEyx.png)
+
+
+
+#### 3. Digital Signature:
+可驗證 author, data, time of signature, 訊息內容.
+RSA數位簽章
+ 
+:::warning
+![digModel](https://hackmd.io/_uploads/S1LECHYV1e.png)
+ 
+ 數位簽章須滿足:
+ depend on message signed
+ use information unique to sender
+ relatively easy to produce
+ relatively easy to recognize & verify
+ 
+ be computationally infeasible to forge
+ be practical save digital signature
+
+EIGamal Signature:
+![dssVsRsa](https://hackmd.io/_uploads/r1WKRHYNyx.png)
+:::
+ 
+
+### ch6 TLs(transport layer security):
+Web security: SSL(secure socket layer) transport layer portocol service
+後續演變成 TLS(transport layer security) uses TCP to provide reliable end to end service, SSL has two layers of protocols
+
+SSL architecture:
+![sslFormat](https://hackmd.io/_uploads/B1mKJIt41x.png)
+
+SSL connection: a transient暫時的, peer to peer communication link
+associated with 1 SSL session
+
+:::success
+SSL session:
+an association between client & server
+created by handshake protocol
+define sets of cryptographic parameters
+may shared by multiple SSL connection
+:::
+
+
+SSL record protocol service:
+message integrity : using Mac with shared secret key, similar to HMAC but with different padding
+
+condifentiality: using symmetric enc with shared secret key defined by handshake protocol
+
+![SSLFlow](https://hackmd.io/_uploads/Bk3_lLY4ke.png)
+
+
+![sslhand](https://hackmd.io/_uploads/SkMoxLYEye.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
